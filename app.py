@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 import uuid
+from datetime import datetime
 
 app = Flask(__name__)
 
 users = {}
 categories = {}
+records = {}
 
 def generate_id():
     return str(uuid.uuid4())
@@ -66,6 +68,60 @@ def delete_category():
         return jsonify({"message": "Category deleted"}), 200
     return jsonify({"error": "Category not found"}), 404
 
+@app.route('/record', methods=['POST'])
+def create_record():
+    data = request.get_json()
+    required_fields = ['user_id', 'category_id', 'amount']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing fields: user_id, category_id, amount"}), 400
+    
+    if data['user_id'] not in users:
+        return jsonify({"error": "User does not exist"}), 404
+    if data['category_id'] not in categories:
+        return jsonify({"error": "Category does not exist"}), 404
+
+    rec_id = generate_id()
+    new_record = {
+        "id": rec_id,
+        "user_id": data['user_id'],
+        "category_id": data['category_id'],
+        "timestamp": datetime.now().isoformat(),
+        "amount": float(data['amount'])
+    }
+    records[rec_id] = new_record
+    return jsonify(new_record), 201
+
+@app.route('/record/<record_id>', methods=['GET'])
+def get_record(record_id):
+    record = records.get(record_id)
+    if record:
+        return jsonify(record)
+    return jsonify({"error": "Record not found"}), 404
+
+@app.route('/record/<record_id>', methods=['DELETE'])
+def delete_record(record_id):
+    if record_id in records:
+        del records[record_id]
+        return jsonify({"message": "Record deleted"}), 200
+    return jsonify({"error": "Record not found"}), 404
+
+@app.route('/record', methods=['GET'])
+def get_records_filtered():
+    user_id = request.args.get('user_id')
+    category_id = request.args.get('category_id')
+
+    if not user_id and not category_id:
+        return jsonify({"error": "Filter parameters (user_id, category_id) are required"}), 400
+
+    filtered = list(records.values())
+
+    if user_id:
+        filtered = [r for r in filtered if r['user_id'] == user_id]
+    
+    if category_id:
+        filtered = [r for r in filtered if r['category_id'] == category_id]
+
+    return jsonify(filtered)
 
 @app.route('/')
 def home():
