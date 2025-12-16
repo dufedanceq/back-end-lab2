@@ -5,3 +5,4 @@ flask-smorest
 marshmallow
 psycopg2-binary
 python-dotenv
+gunicorn
