@@ -9,7 +9,9 @@ class Currency(db.Model):
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.String(36), primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(256), nullable=False)
+    
     default_currency_id = db.Column(db.Integer, db.ForeignKey('currency.id'), nullable=True)
     default_currency = db.relationship('Currency')
 
