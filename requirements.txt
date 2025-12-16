@@ -1,3 +1,7 @@
 flask
-gunicorn
-uuid
+flask-sqlalchemy
+flask-migrate
+flask-smorest
+marshmallow
+psycopg2-binary
+python-dotenv
